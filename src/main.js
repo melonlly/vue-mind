@@ -1,10 +1,13 @@
 import Vue from "vue";
 import App from "./App.vue";
+import 'ant-design-vue/dist/antd.css'
+import Antd from 'ant-design-vue'
 import VueMind from "@/components/vue_mind";
 import DragSelect from "@/components/drag_select";
 
 Vue.config.productionTip = false;
 
+Vue.use(Antd)
 Vue.use(VueMind);
 Vue.use(DragSelect);
 

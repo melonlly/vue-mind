@@ -1,14 +1,16 @@
 <template>
   <div id="app">
-    
+    <flows></flows>
   </div>
 </template>
 
 <script>
+import Flows from './flows'
+
 export default {
   name: 'App',
   components: {
-    HelloWorld
+    Flows
   }
 }
 </script>

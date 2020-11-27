@@ -100,31 +100,6 @@
                 </div>
             </div>
         </div>
-
-        <!--首节点类型选择-->
-        <node-type-modal
-            ref="nodeTypeModal"
-            :random-mode="randomMode"
-            @ok="onOk"
-            @cancel="onCancel"
-        />
-
-        <!--欢迎语配置--> 
-        <welcome-modal ref="welcomeModal" :process-id="id" />
-
-        <!--流程导入-->
-        <flow-import-modal
-            ref="flowImportModal"
-            :process-id="id"
-            :is-random="0"
-            @refreshPage="queryFlowChartDetail"
-        />
-
-        <!--发音人配置-->
-        <sound-modal 
-            ref="soundModal"
-            :process-id="id"
-        />
         
         <context-menu ref="contextMenu" :contextMenuData.sync="contextMenuData"></context-menu>
         
@@ -178,19 +153,10 @@
             </div>
         </a-drawer>
 
-        <!--流程测试-->
-        <test-flow ref="testFlow" :process-id="id" />
     </div>
 </template>
 
 <script>
-import NodeTypeModal from '@/components/modal/node-type-modal'
-import WelcomeModal from '@/components/modal/welcome-modal'
-import FlowImportModal from '@/components/modal/flow-import-modal'
-import SoundModal from '@/components/modal/sound-modal'
-
-import TestFlow from './test-flow'
-
 import SysNodeEdit from './sys-node-edit'
 import StuNodeEdit from './stu-node-edit'
 import TextNodeEdit from './text-node-edit'
@@ -198,12 +164,6 @@ import TextNodeEdit from './text-node-edit'
 import ContextMenu from '@/components/vue_mind/context-menu.vue'
 
 import {
-    queryFlowSettingDetail,
-    queryFlowChartDetail,
-    queryNodeDetail,
-    queryBusiKeyWord,
-    saveFlowChart,
-    saveNodeInfo,
     copyNodesByIds
 } from '@/utils/api'
 import { uuid, showErrorTip, getObjType, isEmpty } from '@/utils/helpers';
@@ -216,22 +176,11 @@ import cloneDeep from 'lodash/cloneDeep';
 const staticWidth = 197
 const staticHeight = 174
 export default {
-    components: { 
-        NodeTypeModal, 
-        WelcomeModal, 
-        FlowImportModal, 
-        SoundModal, 
+    components: {
         SysNodeEdit,  
         StuNodeEdit,
         TextNodeEdit, 
-        ContextMenu, 
-        TestFlow
-    },
-    props: {
-        id: {
-            type: String,
-            required: true
-        }
+        ContextMenu
     },
     data() {
         return {
@@ -247,7 +196,6 @@ export default {
             },
             // 复制剪贴板
             clipBoard: [],
-
             // 控制右侧抽屉
             visible: false,
             drawerTitle: '',
@@ -278,87 +226,16 @@ export default {
             return (this.flowStatus !== FLOW_STATUS.ONLINE && this.flowStatus !== FLOW_STATUS.OFFLINE_FAIL) && editFlag !== 'check'
         }
     },
-    beforeMount() {
-        queryFlowSettingDetail(this.id).then(res => {
-            this.flowName = res.name
-            this.flowStatus = res.status
-
-            const evaluation = res.evaluation
-            const content = evaluation.content
-            const keyInfo = content.keyInfo
-            this.checkKeyInfo = keyInfo > 0
-            
-            this.$nextTick(() => {
-                this.$emit('initName', this.flowName)
-            })
-        })
-        this.queryFlowChartDetail(this.id)
-    },
     mounted() {
         const dom = this.$el;
         this.width = document.body.clientWidth - 258;
         this.height = dom.offsetHeight - 52 - 20;
-
-
         const chartPannel = this.$el.querySelector('.chart-pannel')
         chartPannel.style.height = dom.offsetHeight - 52 - 20 + 'px'
     },
     methods: {
         dragChange(obj) {
             this.$refs.vueMind.dragSelect(obj);
-        },
-        queryFlowChartDetail(id, flag) {
-            queryFlowChartDetail(id).then(res => {
-                const nodeInfo = res.subjectNodesInfo || {}
-                const nodes = nodeInfo.nodes || [];
-
-                this.randomMode = !!res.isRandom
-
-                const connections = nodeInfo.connections || []
-                this.connections = connections.map(obj => {
-                    return {
-                        id: `${obj.sourceId}:${obj.targetId}`,
-                        text: obj.connectedInformation,
-                        mode: 'View'
-                    }
-                })
-
-                if (!nodes || !nodes.length) {
-                    this.editable && !flag && this.$refs.nodeTypeModal.show(true)
-                } else {
-                    this.nodes = nodes.map(node => {
-                        const index = connections.findIndex(obj => {
-                            return obj.targetId === node.id
-                        })
-                        let parentid = null
-                        if (index !== -1) {
-                            parentid = connections[index].sourceId
-                        }
-
-                        const json = {
-                            id: node.id,
-                            type: node.type,
-                            text: node.text,
-                            parentid,
-                            detail: node.detail
-                        }
-                        return json
-                    })
-                }
-
-                // 重置
-                this.pointerIndex = -1;
-                this.undoList = [];
-                
-                this.$nextTick(() => {
-                    this.saveHistoryNodes({
-                        type: 'New',
-                        content: JSON.stringify(this.nodes)
-                    })
-                })
-            }).catch(err => {
-                showErrorTip(err)
-            })
         },
         closeHandle(e) {
             const target = e.target
@@ -578,14 +455,6 @@ export default {
                 })
             }
         },
-        // 欢迎语配置
-        welcomeSetting() {
-            this.$refs.welcomeModal.show()
-        },
-        // 流程导入
-        uploadFlow() {
-            this.$refs.flowImportModal.show()
-        },
         hasTextNodeInFlow() {
             return !!this.nodes.filter(obj => {
                 return obj.type === NODE_TYPE.TEXT
@@ -645,70 +514,6 @@ export default {
                     _this.randomMode = true
                 },
             });
-        },
-        // 发音人配置
-        soundSetting() {
-            this.$refs.soundModal.show()
-        },
-        addFirstNode() {
-            this.$refs.nodeTypeModal.show(true)
-        },
-        toFlowSetttingPage() {
-            const editFlag = this.$route.query.editFlag
-            this.$emit('backToBasic', {
-                id: this.id,
-                tabPosition: 0,
-                editFlag: editFlag,
-                status: this.flowStatus,
-                name: this.flowName
-            });
-        },
-        // 
-        toFlowSettting() {
-            const _this = this
-            if(this.editable) {
-                this.$confirm({
-                    title: '提示',
-                    content: '即将返回基本信息页面，请确保您的流程信息已保存',
-                    onOk() {
-                        _this.toFlowSetttingPage()
-                    }
-                })
-            } else {
-                _this.toFlowSetttingPage()
-            }
-        },
-        toFlowListPage() {
-            let params = Object.assign({}, DEFAULT_PARAMS)
-            let sessionParams = sessionStorage.getItem('params')
-            if (!isEmpty(sessionParams)) {
-                try {
-                    sessionParams = JSON.parse(sessionParams)
-                    Object.assign(params, sessionParams)
-                } catch (error) {}
-            }
-            this.$router.push({
-                name: 'FlowList',
-                params
-            });
-        },
-        // 返回话术列表页
-        toFlowList() {
-            const _this = this
-            if (this.editable) {
-                this.$confirm({
-                    title: '提示',
-                    content: '即将返回话术设计列表，请确保您的流程信息已保存',
-                    onOk() {
-                        _this.toFlowListPage()
-                    }
-                })
-            } else {
-                _this.toFlowListPage()
-            }
-        },
-        testFlow() {
-            this.$refs.testFlow.show()
         },
         hasRootNode() {
             const index = this.nodes.findIndex(obj => {
@@ -920,27 +725,7 @@ export default {
                 processId: this.id,
                 nodeId: node.id
             }
-            Promise.all([queryNodeDetail(param), queryBusiKeyWord()]).then(res => {
-                this.nodeDetail = res[0]
-                this.editNode = node
-                if (node.type === NODE_TYPE.SYSTEM) {
-                    this.drawerTitle = '机器人话术配置'
-                } else if (node.type === NODE_TYPE.STUDENT) {
-                    this.drawerTitle = '学员话术配置'
-                } else if(node.type === NODE_TYPE.TEXT) {
-                    this.drawerTitle = '旁白话术配置'
-                }
-
-                this.busiKeyWord = res[1]
-                this.visible = true
-            }).catch(err => {
-                const code = err.code + ''
-                if (code === '10000') {
-                    showErrorTip(new Error('该节点已被其他操作者删除'))
-                } else {
-                    showErrorTip(err)
-                }
-            })
+            this.visible = true
         },
         getPathText(pathTextList, parentId, id) {
             const pathId = `${parentId}:${id}`
@@ -955,56 +740,7 @@ export default {
         },
         // 保存流程信息
         saveFlow(type) {
-            // 已上线或查看时，不能提交
-            if (!this.editable) {
-                return
-            }
-            if (this.locked) {
-                return
-            }
-            this.locked = true
             
-            const nodes = this.nodes.map(obj => {
-                const json = {
-                    id: obj.id,
-                    text: obj.text,
-                    type: obj.type
-                }
-                return json
-            })
-
-            const pathTextList = this.$refs.vueMind.getPathTextList()
-
-            const connections = this.nodes.filter(obj => {
-                return obj.id && obj.parentid
-            }).map(obj => {
-                const pathText = this.getPathText(pathTextList, obj.parentid, obj.id)
-                const json = {
-                    targetId: obj.id,
-                    sourceId: obj.parentid,
-                    connectedInformation: pathText
-                }
-                return json
-            })
-
-            const nodesInfo = {
-               nodes,
-               connections 
-            }
-            const param = {
-                processId: this.id,
-                isRandom: this.randomMode ? 1 : 0,
-                subjectNodesInfo: JSON.stringify(nodesInfo)
-            }
-            saveFlowChart(param).then(res => {
-                this.locked = false
-                if (type !== 'Auto') {
-                    this.$message.success('话术流程主题信息保存成功')
-                }
-            }).catch(err => {
-                this.locked = false
-                showErrorTip(err)
-            })
         },
         closeDrawer() {
             this.editNode = null
@@ -1022,42 +758,11 @@ export default {
             }
         },
         ignoreHandle() {
-            return this.saveNodeInfo(null, true)
+            console.log(`ignoreHandle`);
         },
         // 保存节点信息
         saveNodeInfo(e, flag) {
-            const params = this.$refs.nodeDrawer.getParams(flag);
-            if (!params) {
-                return;
-            }
-
-            params.processId = this.id
-            params.nodeId = this.editNode.id
-            params.nodeType = this.editNode.type
-            saveNodeInfo(params).then(res => {
-                const nodeErrorMessage = res.nodeErrorMessage
-                if (isEmpty(nodeErrorMessage)) {
-                    this.$message.success('保存成功')
-                } else {
-                    this.$message.warning(nodeErrorMessage)
-                }
-                const detail = this.getDetail(res)
-                this.updateNodeInfo({
-                    id: params.nodeId,
-                    detail
-                });
-                this.updateUndoList({
-                    id: params.nodeId,
-                    detail
-                })
-                this.$nextTick(() => {
-                    this.saveFlow('Auto')
-                    this.closeDrawer()
-                })
-            }).catch(err => {
-                this.closeDrawer()
-                showErrorTip(err)
-            })
+            console.log(`saveNodeInfo`);
         },
         updateContentById(content, json) {
             let jsonArray = JSON.parse(content)
@@ -1108,23 +813,8 @@ export default {
                 idArray.push(nodeItem.id)
             })
 
-            const params = {
-                processId: this.id,
-                nodeId: idArray.join(',')
-            }
-            copyNodesByIds(params).then(res => {
-                this.$message.success('复制成功')
-                this.clipBoard = []
-                const node = this.getNodeById(nodeId)
-                let nodeStr = JSON.stringify(node)
-                res.forEach(obj => {
-                    const reg = new RegExp(obj.nodeIdOld, 'gi')
-                    nodeStr = nodeStr.replace(reg, obj.nodeIdNew)
-                });
-                this.clipBoard.push(JSON.parse(nodeStr))
-            }).catch(err => {
-                showErrorTip(err)
-            })
+            // TODO 节点复制
+            console.log(idArray);
         },
         multiCopy(nodeIdList) {
             if (this.visible) {
@@ -1161,24 +851,8 @@ export default {
                 idArray.push(node.id)
             });
 
-            const params = {
-                processId: this.id,
-                nodeId: idArray.join(',')
-            }
-            copyNodesByIds(params).then(res => {
-                this.$message.success('复制成功')
-                this.clipBoard = []
-                array.forEach(node => {
-                    let nodeStr = JSON.stringify(node)
-                    res.forEach(obj => {
-                        const reg = new RegExp(obj.nodeIdOld, 'gi')
-                        nodeStr = nodeStr.replace(reg, obj.nodeIdNew)
-                    });
-                    this.clipBoard.push(JSON.parse(nodeStr))
-                });
-            }).catch(err => {
-                showErrorTip(err)
-            })
+            // TODO 节点复制
+            console.log(idArray);
         },
         // 粘贴节点
         pasteNode(nodeId) {
