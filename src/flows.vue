@@ -45,17 +45,8 @@
                     </template>
                     <a-icon type="question-circle"  class="icon" />
                 </a-popover>
-                <a-tooltip title="欢迎语配置" placement="right">
-                    <i class="iconfont icon-huanyingye icon" @click="welcomeSetting" />
-                </a-tooltip>
-                <a-tooltip title="批量上传" placement="right">
-                    <a-icon type="cloud-upload" class="icon" @click="uploadFlow" />
-                </a-tooltip>
                 <a-tooltip title="随机模式" placement="right">
-                    <i class="iconfont icon-icon-- icon" :class="{'is-random': randomMode}" @click="toggleRandomMode" /></i>
-                </a-tooltip>
-                <a-tooltip title="发音人配置" placement="right">
-                    <a-icon type="setting" class="icon" @click="soundSetting" />
+                    <i class="iconfont icon-icon-- icon" :class="{'is-random': randomMode}" @click="toggleRandomMode" />
                 </a-tooltip>
                 <a-tooltip :title="`撤销${undoType}`" placement="right" v-if="pointerIndex >= 1">
                     <i class="iconfont icon-chexiao icon" @click="undo" />
@@ -94,9 +85,7 @@
                 <div class="btn-pannel">
                     <i class="iconfont icon-jiqiren-" style="font-size:16px;color:red"></i>
                     <i class="iconfont icon-xuesheng"></i>
-                    <a-button type="primary" ghost @click="toFlowSettting">上一步</a-button>
                     <a-button type="primary" :disabled="!editable" @click="saveFlow">保存</a-button>
-                    <a-button type="primary" ghost @click="toFlowList">返回列表</a-button>
                 </div>
             </div>
         </div>
