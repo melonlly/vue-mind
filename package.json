@@ -11,7 +11,8 @@
     "ant-design-vue": "^1.4.3",
     "core-js": "^3.6.5",
     "loadsh": "0.0.4",
-    "vue": "^2.6.11"
+    "vue": "^2.6.11",
+    "vuex": "^3.6.0"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "^4.5.0",
@@ -20,6 +21,8 @@
     "babel-eslint": "^10.1.0",
     "eslint": "^6.7.2",
     "eslint-plugin-vue": "^6.2.2",
+    "less": "^3.12.2",
+    "less-loader": "^7.1.0",
     "vue-template-compiler": "^2.6.11"
   },
   "eslintConfig": {
@@ -34,7 +37,13 @@
     "parserOptions": {
       "parser": "babel-eslint"
     },
-    "rules": {}
+    "rules": {
+      "no-unused-vars": 0,
+      "vue/no-use-v-if-with-v-for": 0,
+      "vue/require-valid-default-prop": 0,
+      "vue/no-side-effects-in-computed-properties":  0,
+      "no-empty": 0
+    }
   },
   "browserslist": [
     "> 1%",

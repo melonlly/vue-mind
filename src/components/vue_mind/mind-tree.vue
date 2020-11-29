@@ -348,7 +348,8 @@ i.sys-node {
     display: inline-block;
     width: @icon-size;
     height: @icon-size;
-    background: url(../../../public/image/sys-node.png) center center no-repeat;
+    // background: url(../../../public/image/sys-node.png) center center no-repeat;
+    background: url(../../../public/image/node.png) center center no-repeat;
     background-size: contain;
 }
 
@@ -357,7 +358,8 @@ i.stu-node {
     display: inline-block;
     width: @icon-size;
     height: @icon-size;
-    background: url(../../../public/image/stu-node.png) center center no-repeat;
+    // background: url(../../../public/image/stu-node.png) center center no-repeat;
+    background: url(../../../public/image/node.png) center center no-repeat;
     background-size: contain;
 }
 
@@ -366,7 +368,8 @@ i.text-node {
     display: inline-block;
     width: @icon-size;
     height: @icon-size;
-    background: url(../../../public/image/text-node.png) center center no-repeat;
+    // background: url(../../../public/image/text-node.png) center center no-repeat;
+    background: url(../../../public/image/node.png) center center no-repeat;
     background-size: contain;
 }
 </style>
