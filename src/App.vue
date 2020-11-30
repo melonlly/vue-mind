@@ -1,24 +1,31 @@
 <template>
-  <div id="app">
-    <flows></flows>
-  </div>
+    <div id="app">
+        <div class="content">
+          <flows></flows>
+        </div>
+    </div>
 </template>
 
 <script>
-import Flows from './flows'
+import Flows from "./flows";
 
 export default {
-  name: 'App',
-  components: {
-    Flows
-  }
-}
+    name: "App",
+    components: {
+        Flows,
+    },
+};
 </script>
 
-<style>
+<style lang="less">
+@import "./less/common/global.less";
+@import "./less/common/layout.less";
 #app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    .content {
+      flex: 1;
+    }
 }
 </style>

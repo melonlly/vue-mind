@@ -149,3 +149,5 @@ export const TIME_FORMAT = 'YYYY-MM-DD HH:mm:ss'
 export const TIP_NODECONTENT_A = '请输入不超过1000字的中英文字符、数字、空格及部分标点（含，。、！？；：“”-~%/（）《》.[]【】×+*）'
 
 export const TIP_NODECONTENT_B = '若您需要添加关键信息，选中您想要的字段后，点击添加即可'
+
+export const REG_NODECONTENT = new RegExp(/[^a-zA-Z0-9\u4E00-\u9FA5\，\,\。\、\!\！\？\?\；\;\：\:\“\”\"\-\~\%\/\（\）\(\)\《\》\.\[\]\【\】\×\+\*\s]/g)

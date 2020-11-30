@@ -5,9 +5,9 @@
         :style="contextMenuData.axis"
     >
         <div class="menus">
-            <template v-for="(obj, index) in contextMenuData.menuList">
-                <div class="line" v-if="index !== 0"></div>
-                <div v-for="item in obj">
+            <div v-for="(obj, i) in contextMenuData.menuList" :key="`menu-list-${i}`">
+                <div class="line" v-if="i !== 0"></div>
+                <div v-for="(item, j) in obj" :key="`menu-item-${j}`">
                     <a
                         class="flex"
                         :class="{ disabled: item.disabled }"
@@ -17,7 +17,7 @@
                         <span v-if="item.shortcut">{{ item.shortcut }}</span>
                     </a>
                 </div>
-            </template>
+            </div>
         </div>
     </div>
 </template>
@@ -46,7 +46,6 @@ export default {
         clickHandle(obj) {
             if (obj.disabled) return;
             this.hideMenu();
-            //
             const type = typeof obj.fnHandle;
             if (type === "function") {
                 const event = this.contextMenuData.event;

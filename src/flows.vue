@@ -1,6 +1,5 @@
 <template>
     <div class="page-flow">
-        <div style="height: 10px;background:#F0F2F5"></div>
         <div class="chart-container">
             <div class="tool-bar" v-show="editable">
                 <a-popover
@@ -232,11 +231,15 @@ export default {
     mounted() {
         const dom = this.$el;
         this.width = document.body.clientWidth - 258;
-        this.height = dom.offsetHeight - 52 - 20;
+        this.height = dom.offsetHeight - 40;
         const chartPannel = this.$el.querySelector(".chart-pannel");
-        chartPannel.style.height = dom.offsetHeight - 52 - 20 + "px";
+        chartPannel.style.height = dom.offsetHeight - 40 + "px";
     },
     methods: {
+        // 添加首节点
+        addFirstNode() {
+            this.$refs.nodeTypeModal.show(true)
+        },
         dragChange(obj) {
             this.$refs.vueMind.dragSelect(obj);
         },
@@ -276,7 +279,6 @@ export default {
                         );
                         return false;
                     }
-
                     // 判断是否可打断
                     const isInterrupt = this.getIsInterruptByNode(targetNode);
                     if (isInterrupt) {
@@ -302,7 +304,6 @@ export default {
                         return false;
                     }
                 }
-
                 // 学员话术跟旁白话术不可以出现在同一个分支上
                 const hasTextNode = this.hasChildType(
                     targetNode,
@@ -355,7 +356,6 @@ export default {
                                 "请将此条旁白话术设置为不可打断后粘贴"
                             );
                         }
-
                         return false;
                     }
                 }
@@ -443,7 +443,6 @@ export default {
         },
         changeLineText(lineId, json) {
             if (!this.editable) return;
-
             const index = this.connections.findIndex((obj) => {
                 return obj.id === lineId;
             });
@@ -462,7 +461,6 @@ export default {
             if (!node) {
                 return;
             }
-
             callback && callback(node);
             const children = node.children;
             if (children && children.length) {
@@ -491,7 +489,6 @@ export default {
             if (flag) {
                 return;
             }
-
             const id = uuid(32, 16);
             // 创建首节点
             let json;
@@ -512,20 +509,9 @@ export default {
                 this.saveFlow("Auto");
             });
         },
+        // 首节点类型选择modal-取消
         onCancel() {
-            const _this = this;
-            this.$confirm({
-                title: "提示",
-                content: "即将返回列表，请确保您的流程信息已保存",
-                onOk() {
-                    _this.toFlowListPage();
-                },
-                onCancel() {
-                    if (!_this.nodes.length) {
-                        _this.$refs.nodeTypeModal.show();
-                    }
-                },
-            });
+            console.log(`首节点类型选择modal：取消`);
         },
         getNodeById(nodeId) {
             const index = this.nodes.findIndex((obj) => {
@@ -543,10 +529,8 @@ export default {
             if (this.locked) {
                 return;
             }
-
             const node = this.getNodeById(nodeId);
             const nodeType = node.type;
-
             // 随机模式下不可添加多分支
             const flag = this.hasChildNode(node);
             if (flag) {
@@ -564,7 +548,6 @@ export default {
                     this.$message.warning("业务节点冲突，请手动添加");
                     return false;
                 }
-
                 const id = uuid(32, 16);
                 const json = new StudentNode(id);
                 json.parentid = nodeId;
@@ -582,20 +565,17 @@ export default {
                     this.$message.warning("业务节点冲突，请手动添加");
                     return false;
                 }
-
                 // 可打断
                 const isInterrupt = this.getIsInterruptByNode(node);
                 if (isInterrupt) {
                     this.$message.warning("请将该节点设置为不可打断后新建");
                     return false;
                 }
-
                 const id = uuid(32, 16);
                 const json = new SystemNode(id);
                 json.parentid = nodeId;
                 this.nodes.push(json);
             }
-
             // 自动保存流程信息
             this.$nextTick(() => {
                 this.saveHistoryNodes({
@@ -611,7 +591,6 @@ export default {
             if (isEmpty(node)) {
                 return;
             }
-
             const id = uuid(32, 16);
             let json;
             if (nodeType === NODE_TYPE.SYSTEM) {
@@ -630,14 +609,12 @@ export default {
                     type: "Add",
                     content: JSON.stringify(this.nodes),
                 });
-
                 this.saveFlow("Auto");
             });
         },
         // 删除节点
         deleteNodeHandle(nodeId) {
             this.$refs.contextMenu.hideMenu();
-
             if (this.visible) {
                 return;
             }
@@ -651,11 +628,9 @@ export default {
                     }
                 }
             }
-
             if (isEmpty(selectNodes)) {
                 return;
             }
-
             selectNodes.forEach((nodeId) => {
                 const node = this.getNodeById(nodeId);
                 this.eachNode(node, (nodeItem) => {
@@ -678,14 +653,24 @@ export default {
                 this.saveFlow("Auto");
             });
         },
+        // 单击节点
         clickNode(e, node) {
             this.$refs.contextMenu.hideMenu();
         },
+        // 双击节点
         dblclick(e, node) {
             const param = {
-                processId: this.id,
                 nodeId: node.id,
             };
+            this.nodeDetail = {} // 节点详情
+            this.editNode = node
+            if (node.type === NODE_TYPE.SYSTEM) {
+                this.drawerTitle = '机器人话术配置'
+            } else if (node.type === NODE_TYPE.STUDENT) {
+                this.drawerTitle = '学员话术配置'
+            } else if(node.type === NODE_TYPE.TEXT) {
+                this.drawerTitle = '旁白话术配置'
+            }
             this.visible = true;
         },
         getPathText(pathTextList, parentId, id) {
@@ -756,22 +741,18 @@ export default {
             if (this.visible) {
                 return;
             }
-
             if (!nodeId) {
                 // this.$message.warning('请选择要复制的节点')
                 return;
             }
-
             const node = this.getNodeById(nodeId);
             if (isEmpty(node)) {
                 return;
             }
-
             const idArray = [];
             this.eachNode(node, (nodeItem) => {
                 idArray.push(nodeItem.id);
             });
-
             // TODO 节点复制
             console.log(idArray);
         },
@@ -1008,7 +989,6 @@ export default {
 
             return false;
         },
-
         onContextMenu(e, node) {
             e.preventDefault();
             e.stopPropagation();

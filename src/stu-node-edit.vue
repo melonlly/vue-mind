@@ -52,16 +52,6 @@
             </div>
         </div>
 
-        <!--资源管理-->
-        <auto-word
-            class="auto-word-wrapper"
-            v-model="keyInfos"
-            :process-id="processId"
-            :node-id="nodeId"
-            :editable="editable"
-            :busi-key-word="busiKeyWord"
-        />
-
         <div class="row-item block">
             <bread>节点转出</bread>
             <div>
@@ -81,8 +71,7 @@
 <script>
 import SettingTip from "@/components/modal/setting-tip";
 import Bread from "@/components/common/bread";
-import AutoWord from "@/components/common/auto-word";
-import { isEmpty, uuid, showErrorTip, toBoolean } from "@/utils/helpers";
+import { isEmpty, uuid, showErrorTip } from "@/utils/helpers";
 import {
     IS_OR_NOT,
     CHOOSE_YES,
@@ -91,11 +80,10 @@ import {
     TIP_NODECONTENT_B,
     REG_NODECONTENT,
 } from "@/utils/const";
-import { autoAnalysis } from "@/utils/api";
 import { debounce } from "lodash";
 
 export default {
-    components: { Bread, AutoWord, SettingTip },
+    components: { Bread, SettingTip },
     props: {
         detailInfo: {
             type: Object,
@@ -153,7 +141,7 @@ export default {
         let keyInfos = this.detailInfo.keyInfos || [];
         this.keyInfos = keyInfos.map((obj) => {
             obj.uuid = uuid();
-            obj.error = toBoolean(obj.error);
+            obj.error = !!obj.error;
             if (isEmpty(obj.type)) {
                 obj.error = true;
                 obj.errorType = "TYPE_EMPTY";
@@ -281,55 +269,6 @@ export default {
                 isEnd: this.isEnd ? CHOOSE_YES : CHOOSE_NO,
                 keyInfos: JSON.stringify(keyInfos),
             };
-        },
-        // 自动识词
-        autoAnalysis() {
-            if (isEmpty(this.content)) {
-                this.$message.warning("请输入话术内容后进行自动识词");
-                return;
-            }
-
-            const flag = isEmpty(this.keyInfos);
-            if (flag) {
-                this.doAutoAnalysis();
-                return;
-            }
-
-            const _this = this;
-            this.$confirm({
-                title: "提示",
-                content: (
-                    <span>
-                        重新识词，将会刷新当前关键信息及扩展词，是否确认刷新？
-                    </span>
-                ),
-                onOk() {
-                    _this.doAutoAnalysis();
-                },
-            });
-        },
-        doAutoAnalysis() {
-            autoAnalysis(this.content)
-                .then((res) => {
-                    const flag = isEmpty(res);
-                    if (flag) {
-                        this.$message.warning(
-                            "暂未识别出可用结果，请手动添加吧"
-                        );
-                    } else {
-                        this.keyInfos = res.map((obj) => {
-                            obj.uuid = uuid();
-                            if (isEmpty(obj.type)) {
-                                obj.error = true;
-                                obj.errorType = "TYPE_EMPTY";
-                            }
-                            return obj;
-                        });
-                    }
-                })
-                .catch((err) => {
-                    showErrorTip(err);
-                });
         },
         delAllKeyInfo() {
             if (isEmpty(this.keyInfos)) {

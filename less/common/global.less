@@ -1,0 +1,72 @@
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure,
+footer, header, menu, nav, section {
+  display: block;
+}
+
+
+blockquote, q {
+  quotes: none;
+}
+
+blockquote:before, blockquote:after,
+q:before, q:after {
+  content: none;
+}
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+html,body,div,span,p,ul,li,ol,dl,dd,dt,input,h1,h2,h3,h4,h5,h6,nav,section,header,article,footer,input,textarea,label,a,button{
+	margin:0;
+	padding:0;
+	box-sizing:border-box;
+	background-repeat:no-repeat;
+	background-size:cover;
+	list-style: none;
+}
+
+html,body{
+	width:100%;
+	height:100%;
+	font-family:"microsoft yahei","宋体", arial, STHeiTi, sans-serif;
+}
+#app,.wrapper{
+	width:100%;
+	height:100%;
+	overflow: auto; 
+}
+
+body{
+	font-size:13px;
+	-webkit-overflow-scrolling: touch;
+	min-height: 100%;
+	direction: ltr;
+}
+
+.left{
+	float: left;
+}
+
+.right{
+	float: right;
+}
+
+input[type=text],input[type=password],input[type=submit],input[type=button],button{
+	outline: none;
+	-webkit-appearance: none;
+}
+
+a,img,button,input,textarea,div,span,label,p,em{-webkit-tap-highlight-color:rgba(255,255,255,0);}
+
+a,a:hover,a:visited,a:active{
+	outline: 0;
+    text-decoration: none !important;
+}
+
+p,ul{
+	margin-bottom: 0 !important;
+}
+
