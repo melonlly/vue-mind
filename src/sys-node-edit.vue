@@ -27,35 +27,12 @@
             </div>
         </div>
 
-        <div class="row-item block">
-            <bread>是否可打断</bread>
-            <div>
-                <a-radio-group
-                    :disabled="getDisabled()"
-                    :options="IS_OR_NOT"
-                    v-model="isInterrupt"
-                />
-            </div>
-        </div>
-        <div class="row-item block">
-            <bread>节点转出</bread>
-            <div>
-                <a-checkbox
-                    :disabled="hasChild"
-                    :checked="isEnd"
-                    @change="onChange"
-                    >作为结束节点</a-checkbox
-                >
-            </div>
-        </div>
-
         <setting-tip ref="settingTip" :title="settingTipTitle" @ok="handleOk" />
     </div>
 </template>
 
 <script>
 import SettingTip from "@/components/modal/setting-tip";
-import Bread from "@/components/common/bread";
 import { isEmpty } from "@/utils/helpers";
 import { NODE_TYPE } from "@/utils/const";
 import {
@@ -68,7 +45,7 @@ import {
 } from "@/utils/const";
 
 export default {
-    components: { Bread, SettingTip },
+    components: { SettingTip },
     props: {
         detailInfo: {
             type: Object,
@@ -143,7 +120,6 @@ export default {
                     return;
                 }
             }
-
             return {
                 nodeName: this.nodeName,
                 content: this.content.trim(),

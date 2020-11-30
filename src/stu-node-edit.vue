@@ -52,25 +52,12 @@
             </div>
         </div>
 
-        <div class="row-item block">
-            <bread>节点转出</bread>
-            <div>
-                <a-checkbox
-                    :disabled="hasChild"
-                    :checked="isEnd"
-                    @change="onChange"
-                    >作为结束节点</a-checkbox
-                >
-            </div>
-        </div>
-
         <setting-tip ref="settingTip" :title="settingTipTitle" @ok="handleOk" />
     </div>
 </template>
 
 <script>
 import SettingTip from "@/components/modal/setting-tip";
-import Bread from "@/components/common/bread";
 import { isEmpty, uuid, showErrorTip } from "@/utils/helpers";
 import {
     IS_OR_NOT,
@@ -83,7 +70,7 @@ import {
 import { debounce } from "lodash";
 
 export default {
-    components: { Bread, SettingTip },
+    components: { SettingTip },
     props: {
         detailInfo: {
             type: Object,
