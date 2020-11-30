@@ -50,13 +50,6 @@
                     </template>
                     <a-icon type="question-circle" class="icon" />
                 </a-popover>
-                <a-tooltip title="随机模式" placement="right">
-                    <i
-                        class="iconfont icon-icon-- icon"
-                        :class="{ 'is-random': randomMode }"
-                        @click="toggleRandomMode"
-                    />
-                </a-tooltip>
                 <a-tooltip
                     :title="`撤销${undoType}`"
                     placement="right"
@@ -69,7 +62,7 @@
                     placement="right"
                     v-if="!nodes.length"
                 >
-                    <a-icon type="plus" class="icon" />
+                    <a-icon type="plus" class="icon" @click="addFirstNode" />
                 </a-tooltip>
             </div>
             <drag-select
@@ -103,10 +96,14 @@
             </drag-select>
         </div>
 
+        <!-- 菜单 -->
         <context-menu
             ref="contextMenu"
             :contextMenuData.sync="contextMenuData"
         ></context-menu>
+
+        <!--首节点类型选择-->
+        <node-type-modal ref="nodeTypeModal" @ok="onOk" @cancel="onCancel" />
 
         <!--节点编辑-->
         <a-drawer
@@ -116,15 +113,39 @@
             :visible="visible"
             @close="closeHandle"
         >
-            <!--节点编辑-->
-            <!-- <node-edit
+            <!--系统节点编辑-->
+            <sys-node-edit
                 ref="nodeDrawer"
-                v-if="visible"
+                v-if="visible && editNode.type === NODE_TYPE.SYSTEM"
                 :editable="editable"
                 :detail-info="nodeDetail"
                 :node-info="editNode"
                 @ignore="ignoreHandle"
-            /> -->
+            />
+
+            <!--学员节点编辑-->
+            <stu-node-edit
+                ref="nodeDrawer"
+                v-if="visible && editNode.type === NODE_TYPE.STUDENT"
+                :process-id="id"
+                :node-id="this.editNode ? this.editNode.id : null"
+                :editable="editable"
+                :check-key-info="checkKeyInfo"
+                :detail-info="nodeDetail"
+                :busi-key-word="busiKeyWord"
+                :node-info="editNode"
+                @ignore="ignoreHandle"
+            />
+
+            <!--旁白节点编辑-->
+            <text-node-edit
+                ref="nodeDrawer"
+                v-if="visible && editNode.type === NODE_TYPE.TEXT"
+                :editable="editable"
+                :detail-info="nodeDetail"
+                :node-info="editNode"
+                @ignore="ignoreHandle"
+            />
 
             <div class="footer">
                 <template v-if="!editable">
@@ -144,6 +165,10 @@
 </template>
 
 <script>
+import SysNodeEdit from "./sys-node-edit";
+import StuNodeEdit from "./stu-node-edit";
+import TextNodeEdit from "./text-node-edit";
+import NodeTypeModal from "@/components/modal/node-type-modal";
 import ContextMenu from "@/components/vue_mind/context-menu.vue";
 import { uuid, showErrorTip, getObjType, isEmpty } from "@/utils/helpers";
 import { FLOW_STATUS, NODE_TYPE, DEFAULT_PARAMS } from "@/utils/const";
@@ -155,7 +180,11 @@ const staticWidth = 197;
 const staticHeight = 174;
 export default {
     components: {
+        NodeTypeModal,
         ContextMenu,
+        SysNodeEdit,
+        StuNodeEdit,
+        TextNodeEdit,
     },
     data() {
         return {
@@ -185,8 +214,6 @@ export default {
             pointerIndex: -1,
             undoList: [],
             connections: [],
-            // 随机模式
-            randomMode: false,
             undoType: "",
             // 存放业务关键词
             busiKeyWord: [],
@@ -230,19 +257,6 @@ export default {
         canMoveTo(targetId, sourceNode) {
             const targetNode = this.getNodeById(targetId);
             const sourceType = sourceNode.type;
-            // 判断随机模式
-            if (this.randomMode) {
-                const children = targetNode.children;
-                if (children.length) {
-                    this.$message.warning("随机模式下，不可创建多分支流程");
-                    return false;
-                }
-
-                if (sourceType === NODE_TYPE.TEXT) {
-                    this.$message.warning("随机模式下，不可创建旁白节点");
-                    return false;
-                }
-            }
             // 如果当前节点为结束节点，禁止新增节点
             if (targetNode.detail.isEnd === CHOOSE_YES) {
                 this.$message.warning("结束节点不允许新增节点");
@@ -462,61 +476,6 @@ export default {
                 return obj.type === NODE_TYPE.TEXT;
             }).length;
         },
-        // 随机模式切换
-        toggleRandomMode() {
-            // 关闭随机模式
-            if (this.randomMode) {
-                this.randomMode = !this.randomMode;
-                return;
-            }
-
-            // 打开随机模式
-            const firstNode = this.getFirstNode(this.nodes);
-            if (!firstNode) {
-                this.openRandom();
-                return;
-            }
-
-            // 1.不能打开
-            let isMultiBranch = false;
-            this.eachNode(firstNode, (obj) => {
-                const hasMultiChild = obj.children && obj.children.length > 1;
-                isMultiBranch = isMultiBranch || hasMultiChild;
-            });
-            const firstNodeType = firstNode.type;
-            // 流程中有旁白节点
-            let hasTextNode = this.hasTextNodeInFlow();
-            // 首节点是学员节点
-            const flag = firstNodeType === NODE_TYPE.STUDENT;
-            if (isMultiBranch || hasTextNode || flag) {
-                this.$warning({
-                    title: "提示",
-                    content: (
-                        <span>
-                            当流程为多分支流程；或存在旁白话术；及首个节点为学员节点时，不能开启随机模式
-                        </span>
-                    ),
-                });
-                return;
-            }
-
-            // 2.可以打开
-            this.openRandom();
-        },
-        openRandom() {
-            const _this = this;
-            this.$confirm({
-                title: "提示",
-                content: (
-                    <span>
-                        打开随机模式后，首节点不可为学员话术，且不可配置旁白节点或多分支流程
-                    </span>
-                ),
-                onOk() {
-                    _this.randomMode = true;
-                },
-            });
-        },
         hasRootNode() {
             const index = this.nodes.findIndex((obj) => {
                 return isEmpty(obj.parentid);
@@ -589,7 +548,7 @@ export default {
             const nodeType = node.type;
 
             // 随机模式下不可添加多分支
-            const flag = this.randomMode && this.hasChildNode(node);
+            const flag = this.hasChildNode(node);
             if (flag) {
                 this.$message.warning("随机模式下不可添加多分支节点");
                 return;
@@ -926,55 +885,6 @@ export default {
                 this.saveFlow("Auto");
             });
         },
-        canUndo() {
-            if (this.randomMode) {
-                const array = JSON.parse(
-                    this.undoList[this.pointerIndex - 1].content
-                );
-
-                const firstNode = this.getFirstNode(array);
-                if (!isEmpty(array)) {
-                    if (firstNode.type === NODE_TYPE.STUDENT) {
-                        this.$message.warning(
-                            "随机模式下不可恢复作为首节点的学员节点"
-                        );
-                        return false;
-                    }
-                }
-
-                for (let i = 0, j = array.length; i < j; i++) {
-                    const item = array[i];
-                    if (item.type === NODE_TYPE.TEXT) {
-                        this.$message.warning("随机模式下不可恢复旁白节点");
-                        return false;
-                    }
-
-                    const children = array.filter((obj) => {
-                        return obj.parentid === item.id;
-                    });
-                    if (children.length > 1) {
-                        this.$message.warning("随机模式下不可恢复多分支");
-                        return false;
-                    }
-                }
-            } else {
-                // // 检查结束节点后是否有子节点
-                // const array = JSON.parse(this.undoList[this.pointerIndex - 1].content)
-                // const checkEnd = this.checkEnd(array)
-                // if (!checkEnd) {
-                //     this.$message.warning('流程不合法不可撤销恢复')
-                //     return false
-                // }
-                // // 检查打断节点后是否有系统节点或旁白节点
-                // const checkInterrupt = this.checkInterrupt(array)
-                // if (!checkInterrupt) {
-                //     this.$message.warning('流程不合法不可撤销恢复')
-                //     return false
-                // }
-            }
-
-            return true;
-        },
         checkInterrupt(array) {
             for (let i = 0, j = array.length; i < j; i++) {
                 const node = array[i];
@@ -992,7 +902,6 @@ export default {
                     }
                 }
             }
-
             return true;
         },
         checkEnd(array) {
@@ -1007,7 +916,6 @@ export default {
                     }
                 }
             }
-
             return true;
         },
         // 撤销
@@ -1015,15 +923,9 @@ export default {
             if (this.visible) {
                 return;
             }
-
             if (this.pointerIndex < 1) {
                 return;
             }
-            const flag = this.canUndo();
-            if (!flag) {
-                return;
-            }
-
             this.pointerIndex = this.pointerIndex - 1;
             const array = JSON.parse(this.undoList[this.pointerIndex].content);
 
@@ -1120,18 +1022,14 @@ export default {
             const isInterrupt = this.getIsInterruptByNode(node);
             // 是否是结束节点
             const isEnd = this.getIsEnd(node);
-            // 随机模式或者已有旁白节点
+            // 已有旁白节点
             const textNodeDisabled =
-                this.randomMode ||
-                hasTextNode ||
-                hasStuNode ||
-                isInterrupt ||
-                isEnd;
+                hasTextNode || hasStuNode || isInterrupt || isEnd;
             // 随机模式下不可有多分支,学员节点不能给旁白节点在同一分支上
-            let stuNodeDisabled = this.randomMode && this.hasChildNode(node);
+            let stuNodeDisabled = this.hasChildNode(node);
             stuNodeDisabled = stuNodeDisabled || isEnd || hasTextNode;
 
-            let sysNodeDisabled = this.randomMode && this.hasChildNode(node);
+            let sysNodeDisabled = this.hasChildNode(node);
             sysNodeDisabled = sysNodeDisabled || isEnd;
             // TODO此处需要优化
             let array = [];
