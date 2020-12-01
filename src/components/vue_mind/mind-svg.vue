@@ -10,14 +10,15 @@
             <!-- polyline - 开放的形状，创建一系列直线连接多个点 -->
             <polyline
                 :points="item.path"
-                @mouseover="hoverLine(item)"
-                @mouseleave="leaveLine(item)"
-                @click="onClick(item)"
-            />
-            <polyline
                 class="line"
                 :class="{ hover: hoverId === item.id }"
+                @click="onClick(item)"
+            />
+            <!-- 比上面的polyline线条更粗，用于鼠标悬浮时更容易选中线条 -->
+            <polyline
                 :points="item.path"
+                @mouseover="hoverLine(item)"
+                @mouseleave="leaveLine(item)"
                 @click="onClick(item)"
             />
         </g>
@@ -196,6 +197,10 @@ export default {
             rootNode = rootNode || this.rootNode;
             const array = [];
             if (rootNode) {
+                /*
+                    递归遍历节点树
+                        获取父子节点坐标（起始节点），记录坐标点
+                */
                 const getChildren = (obj) => {
                     const startPoint = this.getStartPoint(obj);
                     const children = obj.children;
@@ -215,7 +220,7 @@ export default {
                 };
                 getChildren(rootNode);
             }
-
+            console.log(array);
             this.viewList = array;
         },
         getStartPoint(obj) {

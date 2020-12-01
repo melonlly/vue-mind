@@ -708,7 +708,6 @@ export default {
         },
         // 获取根节点
         getRootNode() {
-            console.log(this.nodesData);
             const array = this.nodesData.map((obj) => {
                 obj.children = this.nodesData.filter((item) => {
                     return item.parentid === obj.id;
