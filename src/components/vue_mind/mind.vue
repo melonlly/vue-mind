@@ -5,7 +5,7 @@
         @contextmenu="onContextMenu"
     >
         <copy-node
-            v-show="visible"
+            v-show="showDragLine"
             :node-content="nodeContent"
             :style="`left:${left}px;top:${top}px;`"
         />
@@ -21,9 +21,14 @@
             @sizeChange="onSizeChange"
         >
         </mind-tree>
+        <!-- 
+            svg 画布
+                节点连线
+                拖拽时源节点和目标节点之间的连线
+         -->
         <mind-svg
             ref="mindSvg"
-            :show-drag-line="visible"
+            :show-drag-line="showDragLine"
             :layout="layout"
             :drag-node="dragNode"
             :copy-left="left"
@@ -130,15 +135,15 @@ export default {
             rootNode: null,
             // 节点
             nodeContent: null,
-            visible: false,
+            showDragLine: false,
             left: 0,
             top: 0,
             selectNodes: [],
             ctrlDown: false,
             selectType: "single",
-            dragNode: null,
-            lineList: [],
-            pathTextList: [],
+            dragNode: null, // 当前拖动节点
+            lineList: [], // 连线list
+            pathTextList: [], // 连线文本list
         };
     },
     computed: {
@@ -181,7 +186,7 @@ export default {
             }
 
             if (Math.abs(disX) > 2 || Math.abs(disY) > 2) {
-                this.visible = true;
+                this.showDragLine = true;
                 if (!this.dragNode) {
                     this.dragNode = dragNode;
                 }
@@ -207,7 +212,7 @@ export default {
                 return;
             }
 
-            this.visible = false;
+            this.showDragLine = false;
             this.dragNode = null;
 
             // 根节点是否所有节点的父节点，拖动是不应该生效的
@@ -614,7 +619,7 @@ export default {
         },
         keydown(e) {
             // 拖拽中禁止操作
-            if (this.visible) {
+            if (this.showDragLine) {
                 return;
             }
 
@@ -701,11 +706,14 @@ export default {
             }
             this.$emit("deleteNode", nodeId);
         },
+        // 获取根节点
         getRootNode() {
+            console.log(this.nodesData);
             const array = this.nodesData.map((obj) => {
                 obj.children = this.nodesData.filter((item) => {
                     return item.parentid === obj.id;
                 });
+                // 默认展开
                 if (obj.expand === undefined) {
                     obj.expand = true;
                 }

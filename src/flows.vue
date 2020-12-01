@@ -209,7 +209,7 @@ export default {
             flowStatus: null,
             width: 0,
             height: 0,
-            nodes: [],
+            nodes: [], // 当前所有节点
             pointerIndex: -1,
             undoList: [],
             connections: [],
@@ -230,7 +230,7 @@ export default {
     },
     mounted() {
         const dom = this.$el;
-        this.width = document.body.clientWidth - 258;
+        this.width = document.body.clientWidth - 20;
         this.height = dom.offsetHeight - 40;
         const chartPannel = this.$el.querySelector(".chart-pannel");
         chartPannel.style.height = dom.offsetHeight - 40 + "px";

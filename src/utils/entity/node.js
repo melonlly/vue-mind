@@ -8,7 +8,7 @@ class Node {
         this.type = type;
         this.text = text;
         this.detail = {
-            nodeIsError: 1
+            nodeIsError: 0
         }
     }
 }

@@ -1,10 +1,13 @@
 <template>
     <svg version="1.1">
+        <!-- g - 组合对象的容器 -->
+        <!-- 添加到g元素的属性会被其所有的子元素继承 -->
         <g
-            transform="translate(0.5 0.5)"
             v-for="item in viewList"
             :key="item.id"
         >
+            <!-- polygon - 闭合的形状 -->
+            <!-- polyline - 开放的形状，创建一系列直线连接多个点 -->
             <polyline
                 :points="item.path"
                 @mouseover="hoverLine(item)"
@@ -18,6 +21,11 @@
                 @click="onClick(item)"
             />
         </g>
+        <!-- 
+            拖拽节点时，产生的连线
+                source <x1, y1> 源节点
+                target <x2, y2> 目标节点（可能没有）
+         -->
         <line
             v-if="dragNode"
             :x1="source.x"
