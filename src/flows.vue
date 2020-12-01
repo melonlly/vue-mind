@@ -238,8 +238,9 @@ export default {
     methods: {
         // 添加首节点
         addFirstNode() {
-            this.$refs.nodeTypeModal.show(true)
+            this.$refs.nodeTypeModal.show(true);
         },
+        // 拖动改变
         dragChange(obj) {
             this.$refs.vueMind.dragSelect(obj);
         },
@@ -260,124 +261,7 @@ export default {
         canMoveTo(targetId, sourceNode) {
             const targetNode = this.getNodeById(targetId);
             const sourceType = sourceNode.type;
-            // 如果当前节点为结束节点，禁止新增节点
-            if (targetNode.detail.isEnd === CHOOSE_YES) {
-                this.$message.warning("结束节点不允许新增节点");
-                return false;
-            }
-            // 拖拽的是机器人节点
-            if (sourceType === NODE_TYPE.SYSTEM) {
-                const targetType = targetNode.type;
-                if (targetType === NODE_TYPE.SYSTEM) {
-                    this.$message.warning("机器人话术后不可直接跟机器人话术");
-                    return false;
-                } else if (targetType === NODE_TYPE.TEXT) {
-                    const _type = this.getParentTypeForTextNode(targetNode);
-                    if (_type === NODE_TYPE.SYSTEM) {
-                        this.$message.warning(
-                            "机器人话术后不可直接跟机器人话术"
-                        );
-                        return false;
-                    }
-                    // 判断是否可打断
-                    const isInterrupt = this.getIsInterruptByNode(targetNode);
-                    if (isInterrupt) {
-                        this.$message.warning(
-                            "请将此条旁白话术设置为不可打断后粘贴"
-                        );
-                        return false;
-                    }
-                }
-                return true;
-            }
-
-            // 拖拽的是学员节点
-            if (sourceType === NODE_TYPE.STUDENT) {
-                const targetType = targetNode.type;
-                if (targetType === NODE_TYPE.STUDENT) {
-                    this.$message.warning("学员话术后不可直接跟学员话术");
-                    return false;
-                } else if (targetType === NODE_TYPE.TEXT) {
-                    const _type = this.getParentTypeForTextNode(targetNode);
-                    if (_type === NODE_TYPE.STUDENT) {
-                        this.$message.warning("学员话术后不可直接跟学员话术");
-                        return false;
-                    }
-                }
-                // 学员话术跟旁白话术不可以出现在同一个分支上
-                const hasTextNode = this.hasChildType(
-                    targetNode,
-                    NODE_TYPE.TEXT
-                );
-                if (hasTextNode) {
-                    this.$message.warning("不支持学员话术及旁白话术为并列分支");
-                    return false;
-                }
-                return true;
-            }
-
-            // 拖拽的是旁白节点
-            if (sourceType === NODE_TYPE.TEXT) {
-                // 同一分支下不能有两个旁白节点
-                const hasTextNode = this.hasChildType(
-                    targetNode,
-                    NODE_TYPE.TEXT,
-                    sourceNode.id
-                );
-                if (hasTextNode) {
-                    this.$message.warning("同一分支下不能有多个旁白话术节点");
-                    return false;
-                }
-
-                // 学员话术跟旁白话术不可以出现在同一个分支上
-                const hasStuNode = this.hasChildType(
-                    targetNode,
-                    NODE_TYPE.STUDENT
-                );
-                if (hasStuNode) {
-                    this.$message.warning("不支持学员话术及旁白话术为并列分支");
-                    return false;
-                }
-
-                let targetType = targetNode.type;
-                // 判断是否可打断
-                if (
-                    targetType === NODE_TYPE.SYSTEM ||
-                    targetType === NODE_TYPE.TEXT
-                ) {
-                    const isInterrupt = this.getIsInterruptByNode(targetNode);
-                    if (isInterrupt) {
-                        if (targetType === NODE_TYPE.SYSTEM) {
-                            this.$message.warning(
-                                "请将此条机器人话术设置为不可打断后粘贴"
-                            );
-                        } else if (targetType === NODE_TYPE.TEXT) {
-                            this.$message.warning(
-                                "请将此条旁白话术设置为不可打断后粘贴"
-                            );
-                        }
-                        return false;
-                    }
-                }
-                // 去掉旁白节点，机器人节点和学员节点必须交替出现
-                if (targetType === NODE_TYPE.TEXT) {
-                    targetType = this.getParentTypeForTextNode(targetNode);
-                }
-                const flag = this.hasChildType(sourceNode, targetType);
-                if (flag) {
-                    if (targetType === NODE_TYPE.SYSTEM) {
-                        this.$message.warning(
-                            "机器人话术后不可直接跟机器人话术"
-                        );
-                    } else if (targetType === NODE_TYPE.STUDENT) {
-                        this.$message.warning("学员话术后不可直接跟学员话术");
-                    }
-                    return false;
-                }
-
-                return true;
-            }
-            return false;
+            return true;
         },
         // 判断是否有某个类型的子节点
         hasChildType(node, nodeType, nodeId) {
@@ -662,14 +546,14 @@ export default {
             const param = {
                 nodeId: node.id,
             };
-            this.nodeDetail = {} // 节点详情
-            this.editNode = node
+            this.nodeDetail = {}; // 节点详情
+            this.editNode = node;
             if (node.type === NODE_TYPE.SYSTEM) {
-                this.drawerTitle = '机器人话术配置'
+                this.drawerTitle = "机器人话术配置";
             } else if (node.type === NODE_TYPE.STUDENT) {
-                this.drawerTitle = '学员话术配置'
-            } else if(node.type === NODE_TYPE.TEXT) {
-                this.drawerTitle = '旁白话术配置'
+                this.drawerTitle = "学员话术配置";
+            } else if (node.type === NODE_TYPE.TEXT) {
+                this.drawerTitle = "旁白话术配置";
             }
             this.visible = true;
         },
@@ -996,160 +880,52 @@ export default {
 
             var x = e.clientX;
             var y = e.clientY;
-            const type = node.type;
-            const hasTextNode = this.hasChildType(node, NODE_TYPE.TEXT);
-            const hasStuNode = this.hasChildType(node, NODE_TYPE.STUDENT);
-            const isInterrupt = this.getIsInterruptByNode(node);
-            // 是否是结束节点
-            const isEnd = this.getIsEnd(node);
-            // 已有旁白节点
-            const textNodeDisabled =
-                hasTextNode || hasStuNode || isInterrupt || isEnd;
-            // 随机模式下不可有多分支,学员节点不能给旁白节点在同一分支上
-            let stuNodeDisabled = this.hasChildNode(node);
-            stuNodeDisabled = stuNodeDisabled || isEnd || hasTextNode;
-
-            let sysNodeDisabled = this.hasChildNode(node);
-            sysNodeDisabled = sysNodeDisabled || isEnd;
-            // TODO此处需要优化
-            let array = [];
-            if (type === NODE_TYPE.SYSTEM) {
-                array = [
-                    { btnName: "新建机器人话术", disabled: true },
-                    {
-                        btnName: "新建学员话术",
-                        disabled: stuNodeDisabled,
-                        fnHandle: this.addNodeByType.bind(
-                            this,
-                            node.id,
-                            NODE_TYPE.STUDENT
-                        ),
-                    },
-                    {
-                        btnName: "新建旁白话术",
-                        disabled: textNodeDisabled,
-                        fnHandle: this.addNodeByType.bind(
-                            this,
-                            node.id,
-                            NODE_TYPE.TEXT
-                        ),
-                    },
-                    {
-                        btnName: "复制",
-                        fnHandle: this.copyNode.bind(this, node.id),
-                        shortcut: "Ctrl + C",
-                    },
-                    {
-                        btnName: "粘贴",
-                        disabled: !this.clipBoard.length,
-                        fnHandle: this.pasteNode.bind(this, node.id),
-                        shortcut: "Ctrl + V",
-                    },
-                    {
-                        btnName: "删除",
-                        fnHandle: this.deleteNodeHandle.bind(this, node.id),
-                        shortcut: "Del",
-                    },
-                ];
-            } else if (type === NODE_TYPE.STUDENT) {
-                array = [
-                    {
-                        btnName: "新建机器人话术",
-                        disabled: sysNodeDisabled,
-                        fnHandle: this.addNodeByType.bind(
-                            this,
-                            node.id,
-                            NODE_TYPE.SYSTEM
-                        ),
-                    },
-                    { btnName: "新建学员话术", disabled: true },
-                    {
-                        btnName: "新建旁白话术",
-                        disabled: textNodeDisabled,
-                        fnHandle: this.addNodeByType.bind(
-                            this,
-                            node.id,
-                            NODE_TYPE.TEXT
-                        ),
-                    },
-                    {
-                        btnName: "复制",
-                        fnHandle: this.copyNode.bind(this, node.id),
-                        shortcut: "Ctrl + C",
-                    },
-                    {
-                        btnName: "粘贴",
-                        disabled: !this.clipBoard.length,
-                        fnHandle: this.pasteNode.bind(this, node.id),
-                        shortcut: "Ctrl + V",
-                    },
-                    {
-                        btnName: "删除",
-                        fnHandle: this.deleteNodeHandle.bind(this, node.id),
-                        shortcut: "Del",
-                    },
-                ];
-            } else if (type === NODE_TYPE.TEXT) {
-                const type = this.getParentTypeForTextNode(node);
-
-                let creatableForSysNode =
-                    type === NODE_TYPE.SYSTEM || isInterrupt || isEnd;
-                creatableForSysNode =
-                    creatableForSysNode ||
-                    this.hasChildType(node, NODE_TYPE.STUDENT);
-
-                let creatableForStuNode = type === NODE_TYPE.STUDENT || isEnd;
-                creatableForStuNode = creatableForStuNode || hasTextNode;
-                creatableForStuNode =
-                    creatableForStuNode ||
-                    this.hasChildType(node, NODE_TYPE.SYSTEM);
-
-                array = [
-                    {
-                        btnName: "新建机器人话术",
-                        disabled: creatableForSysNode,
-                        fnHandle: this.addNodeByType.bind(
-                            this,
-                            node.id,
-                            NODE_TYPE.SYSTEM
-                        ),
-                    },
-                    {
-                        btnName: "新建学员话术",
-                        disabled: creatableForStuNode,
-                        fnHandle: this.addNodeByType.bind(
-                            this,
-                            node.id,
-                            NODE_TYPE.STUDENT
-                        ),
-                    },
-                    {
-                        btnName: "新建旁白话术",
-                        disabled: textNodeDisabled,
-                        fnHandle: this.addNodeByType.bind(
-                            this,
-                            node.id,
-                            NODE_TYPE.TEXT
-                        ),
-                    },
-                    {
-                        btnName: "复制",
-                        fnHandle: this.copyNode.bind(this, node.id),
-                        shortcut: "Ctrl + C",
-                    },
-                    {
-                        btnName: "粘贴",
-                        disabled: !this.clipBoard.length,
-                        fnHandle: this.pasteNode.bind(this, node.id),
-                        shortcut: "Ctrl + V",
-                    },
-                    {
-                        btnName: "删除",
-                        fnHandle: this.deleteNodeHandle.bind(this, node.id),
-                        shortcut: "Del",
-                    },
-                ];
-            }
+            
+            let array = [
+                {
+                    btnName: "新建机器人话术",
+                    disabled: false,
+                    fnHandle: this.addNodeByType.bind(
+                        this,
+                        node.id,
+                        NODE_TYPE.SYSTEM
+                    ),
+                },
+                {
+                    btnName: "新建学员话术",
+                    disabled: false,
+                    fnHandle: this.addNodeByType.bind(
+                        this,
+                        node.id,
+                        NODE_TYPE.STUDENT
+                    ),
+                },
+                {
+                    btnName: "新建旁白话术",
+                    disabled: false,
+                    fnHandle: this.addNodeByType.bind(
+                        this,
+                        node.id,
+                        NODE_TYPE.TEXT
+                    ),
+                },
+                {
+                    btnName: "复制",
+                    fnHandle: this.copyNode.bind(this, node.id),
+                    shortcut: "Ctrl + C",
+                },
+                {
+                    btnName: "粘贴",
+                    disabled: !this.clipBoard.length,
+                    fnHandle: this.pasteNode.bind(this, node.id),
+                    shortcut: "Ctrl + V",
+                },
+                {
+                    btnName: "删除",
+                    fnHandle: this.deleteNodeHandle.bind(this, node.id),
+                    shortcut: "Del",
+                },
+            ];
             const eleHeight =
                 this.$refs.contextMenu.$el.clientHeight || staticWidth;
             const eleWidth =

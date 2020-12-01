@@ -5,10 +5,7 @@
                 <mind-node
                     v-if="node"
                     class="node-item"
-                    :class="{
-                        selected,
-                        'is-error': node.detail && !!node.detail.nodeIsError,
-                    }"
+                    :class="{ selected }"
                     :left="x"
                     :top="y"
                     :layout="layout"
@@ -52,10 +49,12 @@
                     @expand="expandChange"
                 />
             </div>
-            <div class="tree-list">
+            <div
+                class="tree-list"
+                v-if="node && node.children && node.children.length"
+            >
                 <mind-tree
                     v-show="node.expand"
-                    v-if="node && node.children && node.children.length"
                     v-for="item in node.children"
                     :ref="`mindTree_${item.id}`"
                     :key="item.id"

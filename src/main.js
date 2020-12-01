@@ -21,5 +21,10 @@ Vue.directive("focus", {
 });
 
 new Vue({
+    data() {
+        return {
+            TARGET_ID: null
+        }
+    },
     render: (h) => h(App),
 }).$mount("#app");

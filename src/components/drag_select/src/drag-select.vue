@@ -307,7 +307,7 @@ export default {
 <style lang="less" scoped>
 .drag-select-wrapper {
     position: relative;
-    overflow: hidden;
+    // overflow: hidden;
 }
 .drag-select-box {
     position: absolute;

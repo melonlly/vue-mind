@@ -29,14 +29,13 @@
 </template>
 <script>
 import { uuid } from "@/utils/helpers";
-import { mapActions } from "vuex";
 
 export default {
     props: {
         layout: {
             type: String,
             default: "horizontal",
-            validator: function (val) {
+            validator: function(val) {
                 return ["horizontal", "vertical"].indexOf(val) !== -1;
             },
         },
@@ -109,7 +108,7 @@ export default {
             }
 
             this.targetId = node.id;
-            this.setTargetId(node.id);
+            this.$root.TARGET_ID = node.id;
             if (this.layout === "horizontal") {
                 return {
                     x: node.x + node.nodeWidth,
@@ -137,7 +136,6 @@ export default {
         });
     },
     methods: {
-        ...mapActions(["setTargetId"]),
         hoverLine(item) {
             const index = this.viewList.findIndex((obj) => {
                 return obj.id === item.id;

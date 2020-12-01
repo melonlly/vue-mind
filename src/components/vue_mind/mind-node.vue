@@ -2,7 +2,7 @@
     <div
         tabindex="1"
         class="mind-node"
-        :style="`left: ${left}px;top:${top}px`"
+        :style="`left:${left}px;top:${top}px`"
         @focus="onFocus"
         @blur="onBlur"
         @dblclick="dblclick"
@@ -88,11 +88,9 @@ export default {
             if (ctrlKey) {
                 return;
             }
-
             if (e.button === 2) {
                 return;
             }
-
             this.$emit("dragStart", this.$el);
             this.isDrag = true;
             starter = {

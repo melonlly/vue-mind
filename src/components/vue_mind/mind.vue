@@ -70,7 +70,6 @@ import CopyNode from "@/components/vue_mind/copy-node";
 import MindSvg from "@/components/vue_mind/mind-svg";
 import Bus from "@/utils/bus";
 import { isEmpty } from "@/utils/helpers";
-import { mapState } from "vuex";
 
 let positon = null;
 
@@ -143,7 +142,6 @@ export default {
         };
     },
     computed: {
-        ...mapState(["targetId"]),
         disX() {
             if (this.width >= this.minWidth) {
                 return (this.width - this.minWidth) / 2 + this.paddingLeft;
@@ -203,7 +201,7 @@ export default {
             const sourceId = this.dragNode.id;
             const parentid = this.dragNode.parentid;
 
-            const targetId = this.targetId;
+            const targetId = this.$root.TARGET_ID;
             if (isEmpty(targetId)) {
                 console.error("出现异常情况：targetId为空");
                 return;
@@ -449,7 +447,9 @@ export default {
         Bus.$off("node:contextmenu");
     },
     methods: {
-        targetChange(targetId) {},
+        targetChange(targetId) {
+            console.log(`当前节点改变 targetChange`);
+        },
         getPathTextList() {
             return this.pathTextList;
         },
