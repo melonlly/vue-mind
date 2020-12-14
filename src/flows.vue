@@ -69,13 +69,14 @@
                 @change="dragChange"
             >
                 <vue-mind
+                    class="mind"
                     ref="vueMind"
                     v-model="nodes"
                     layout="vertical"
                     :editable="editable"
                     :vspace="60"
-                    :width="width"
-                    :height="height"
+                    :width="12000"
+                    :height="12000"
                     :connections="connections"
                     @addNode="addNodeHandle"
                     @deleteNode="deleteNodeHandle"
@@ -231,9 +232,9 @@ export default {
     mounted() {
         const dom = this.$el;
         this.width = document.body.clientWidth - 20;
-        this.height = dom.offsetHeight - 40;
+        this.height = dom.offsetHeight - 20;
         const chartPannel = this.$el.querySelector(".chart-pannel");
-        chartPannel.style.height = dom.offsetHeight - 40 + "px";
+        chartPannel.style.height = dom.offsetHeight - 20 + "px";
     },
     methods: {
         // 添加首节点
@@ -242,6 +243,7 @@ export default {
         },
         // 拖动改变
         dragChange(obj) {
+            console.log(obj);
             this.$refs.vueMind.dragSelect(obj);
         },
         closeHandle(e) {
@@ -1065,10 +1067,15 @@ export default {
 
 <style lang="less" scoped>
 .chart-pannel {
+    position: relative;
     background: #eef2f5;
     overflow: auto;
     height: 100%;
     margin-top: 10px;
+    .mind {
+        width: 12000px;
+        height: 12000px;
+    }
 }
 
 @tool-bar-width: 50px;

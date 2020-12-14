@@ -34,7 +34,7 @@ export default {
             endPoint: null,
             // 最终计算 结束点
             lastEndPoint: null,
-            // 滚动触发，速度基数 暂不对开发者暴露，一般无需改动
+            // 滚动触发，速度基数
             triggerDistance: 10,
             // 选框最终数据
             selectionBox: {
@@ -194,9 +194,10 @@ export default {
             return scrollSpeed;
         },
         onMouseDown(event) {
+            console.log(event);
             // 忽略右键点击
             if (event.button === 2) return;
-            if (!event.ctrlKey) return;
+            if (!event.ctrlKey) return; // 需要按住Ctrl拖动
 
             this.clientRect = this.$el.getBoundingClientRect();
 
@@ -208,6 +209,7 @@ export default {
                 x: event.pageX - clientRect.left + this.$el.scrollLeft,
                 y: event.pageY - clientRect.top + this.$el.scrollTop,
             };
+            console.log(this.startPoint);
             // 开始监听鼠标 移动，抬起 事件
             window.addEventListener("mousemove", this.onMouseMove);
             window.addEventListener("mouseup", this.onMouseUp);
@@ -218,6 +220,8 @@ export default {
                 this.onMouseUp();
                 return;
             }
+
+            console.log(event);
 
             // 容器参数
             const clientRect = this.clientRect;

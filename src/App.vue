@@ -9,6 +9,12 @@
 <script>
 import Flows from "./flows";
 
+/*
+    todolist
+        1.feat 背景拖拽
+            按住Ctrl拖动
+*/
+
 export default {
     name: "App",
     components: {
